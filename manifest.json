@@ -8,7 +8,7 @@
   "description": "Mensagens diárias de paz e esperança",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+      "src": "logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }
