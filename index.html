@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <title>Mensagens Amigos da Vida</title>
+    <style>
+        /* CORES CORRIGIDAS PARA AZUL */
+        :root { 
+            --primary: #0056b3; /* Azul Real */
+            --bg: #e3f2fd;      /* Azul Bebê */
+            --text-dark: #333333;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: var(--bg); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+        }
+
+        .app-card { 
+            background: #ffffff; 
+            width: 90%; 
+            max-width: 400px; 
+            border-radius: 30px; 
+            box-shadow: 0 15px 35px rgba(0, 86, 179, 0.2); 
+            overflow: hidden; 
+            text-align: center;
+        }
+
+        .header { 
+            background-color: var(--primary); 
+            color: #ffffff; 
+            padding: 25px; 
+        }
+
+        .header h1 { 
+            margin: 0; 
+            font-size: 1.2rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px; 
+        }
+
+        .content { 
+            padding: 40px 25px; 
+            min-height: 220px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+        }
+
+        #titulo-msg { 
+            color: var(--primary); 
+            font-size: 1.3rem; 
+            margin-bottom: 15px; 
+            display: block; 
+            font-weight: bold; 
+        }
+
+        #texto-msg { 
+            font-size: 1.4rem; 
+            color: var(--text-dark); 
+            line-height: 1.6; 
+            margin: 0;
+        }
+
+        .footer { 
+            padding: 15px; 
+            font-size: 0.85rem; 
+            color: #757575; 
+            border-top: 1px solid #e0e0e0; 
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-card">
+        <div class="header">
+            <h1>Amigos da Vida</h1>
+        </div>
+        <div class="content">
+            <span id="titulo-msg">Carregando...</span>
+            <p id="texto-msg">Buscando a mensagem de hoje...</p>
+        </div>
+        <div class="footer" id="data-display">Verificando data...</div>
+    </div>
+
+    <script>
+        // SUBSTITUA ABAIXO PELO SEU LINK DO GOOGLE SHEETS (CSV)
+        const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYdPGQ5c3sRdG9QahzO0zPYZjyzxsJ9z0mDFN3U7e9ZrZKSFGH7-ecqnf-awF1pffdOTnvcPhlmtk9/pub?output=csv";
+
+        async function carregarMensagem() {
+            try {
+                const response = await fetch(URL_CSV);
+                const data = await response.text();
+                const linhas = data.split('\n');
+                
+                const hoje = new Date().toLocaleDateString('pt-BR');
+                document.getElementById('data-display').innerText = "Hoje: " + hoje;
+
+                let encontrou = false;
+
+                for (let i = 1; i < linhas.length; i++) {
+                    const colunas = linhas[i].split(',');
+                    if (colunas.length < 2) continue;
+
+                    const dataPlanilha = colunas[0].replace(/"/g, '').trim();
+
+                    if (dataPlanilha === hoje) {
+                        const mensagem = colunas[1].replace(/"/g, '').trim();
+                        const titulo = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "Mensagem do Dia";
+
+                        atualizarTela(titulo, mensagem);
+                        encontrou = true;
+                        break;
+                    }
+                }
+
+                if (!encontrou) {
+                    document.getElementById('titulo-msg').innerText = "Paz e Bem!";
+                    document.getElementById('texto-msg').innerText = "Aguarde a próxima mensagem agendada.";
+                }
+
+            } catch (error) {
+                document.getElementById('titulo-msg').innerText = "Ops!";
+                document.getElementById('texto-msg').innerText = "Certifique-se de estar conectado à internet.";
+            }
+        }
+
+        function atualizarTela(titulo, texto) {
+            const elTitulo = document.getElementById('titulo-msg');
+            const elTexto = document.getElementById('texto-msg');
+
+            // Se a mensagem mudou, sinaliza (vibra)
+            if (elTexto.innerText !== texto && elTexto.innerText !== "Buscando a mensagem de hoje...") {
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            }
+
+            elTitulo.innerText = titulo;
+            elTexto.innerText = texto;
+        }
+
+        // Solicita permissão para notificações
+        if (window.Notification && Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
+
+        // Verifica novas mensagens a cada 5 minutos
+        setInterval(carregarMensagem, 300000);
+        carregarMensagem();
+    </script>
+</body>
+</html>
