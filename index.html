@@ -6,10 +6,9 @@
     <link rel="manifest" href="manifest.json">
     <title>Mensagens Amigos da Vida</title>
     <style>
-        /* CORES CORRIGIDAS PARA AZUL */
         :root { 
-            --primary: #0056b3; /* Azul Real */
-            --bg: #e3f2fd;      /* Azul Bebê */
+            --primary: #0056b3; 
+            --bg: #e3f2fd;      
             --text-dark: #333333;
         }
 
@@ -92,14 +91,15 @@
     </div>
 
     <script>
-        // SUBSTITUA ABAIXO PELO SEU LINK DO GOOGLE SHEETS (CSV)
         const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYdPGQ5c3sRdG9QahzO0zPYZjyzxsJ9z0mDFN3U7e9ZrZKSFGH7-ecqnf-awF1pffdOTnvcPhlmtk9/pub?output=csv";
 
         async function carregarMensagem() {
             try {
                 const response = await fetch(URL_CSV);
                 const data = await response.text();
-                const linhas = data.split('\n');
+                
+                // Divide as linhas corretamente lidando com quebras de linha
+                const linhas = data.split(/\r?\n/);
                 
                 const hoje = new Date().toLocaleDateString('pt-BR');
                 document.getElementById('data-display').innerText = "Hoje: " + hoje;
@@ -107,27 +107,31 @@
                 let encontrou = false;
 
                 for (let i = 1; i < linhas.length; i++) {
-                    const colunas = linhas[i].split(',');
-                    if (colunas.length < 2) continue;
+                    // Expressão regular para separar por vírgula, ignorando vírgulas dentro de aspas
+                    const colunas = linhas[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    
+                    if (!colunas || colunas.length < 2) continue;
 
                     const dataPlanilha = colunas[0].replace(/"/g, '').trim();
 
                     if (dataPlanilha === hoje) {
-                        const mensagem = colunas[1].replace(/"/g, '').trim();
-                        const titulo = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "Mensagem do Dia";
+                        // Remove aspas do início e fim da mensagem e do autor
+                        const mensagem = colunas[1].replace(/^"|"$/g, '').trim();
+                        const autor = colunas[2] ? colunas[2].replace(/^"|"$/g, '').trim() : "Mensagem do Dia";
 
-                        atualizarTela(titulo, mensagem);
+                        atualizarTela(autor, mensagem);
                         encontrou = true;
                         break;
                     }
                 }
 
                 if (!encontrou) {
-                    document.getElementById('titulo-msg').innerText = "Boa Vida!";
+                    document.getElementById('titulo-msg').innerText = "Paz e Bem!";
                     document.getElementById('texto-msg').innerText = "Aguarde a próxima mensagem agendada.";
                 }
 
             } catch (error) {
+                console.error("Erro ao buscar dados:", error);
                 document.getElementById('titulo-msg').innerText = "Ops!";
                 document.getElementById('texto-msg').innerText = "Certifique-se de estar conectado à internet.";
             }
@@ -137,7 +141,7 @@
             const elTitulo = document.getElementById('titulo-msg');
             const elTexto = document.getElementById('texto-msg');
 
-            // Se a mensagem mudou, sinaliza (vibra)
+            // Feedback tátil se a mensagem for nova
             if (elTexto.innerText !== texto && elTexto.innerText !== "Buscando a mensagem de hoje...") {
                 if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
             }
@@ -146,12 +150,12 @@
             elTexto.innerText = texto;
         }
 
-        // Solicita permissão para notificações
+        // Solicitação de notificação
         if (window.Notification && Notification.permission !== "granted") {
             Notification.requestPermission();
         }
 
-        // Verifica novas mensagens a cada 5 minutos
+        // Verificação periódica (5 minutos)
         setInterval(carregarMensagem, 300000);
         carregarMensagem();
     </script>
