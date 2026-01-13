@@ -95,10 +95,11 @@
 
         async function carregarMensagem() {
             try {
-                const response = await fetch(URL_CSV);
+                // Adicionamos um timestamp para forçar o download dos dados mais recentes da folha
+                const response = await fetch(URL_CSV + "&t=" + new Date().getTime());
                 const data = await response.text();
                 
-                // Divide as linhas tratando quebras de texto
+                // Divide as linhas corretamente
                 const linhas = data.split(/\r?\n/);
                 
                 const hoje = new Date().toLocaleDateString('pt-BR');
@@ -109,23 +110,27 @@
                 for (let i = 1; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
 
-                    // Esta lógica separa as colunas ignorando vírgulas dentro de aspas
-                    const colunas = linhas[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                    // ESTA REGEX RESOLVE TUDO: Ela separa por vírgula, mas mantém o que está entre aspas unido
+                    const regexCSV = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
+                    const colunas = linhas[i].match(regexCSV);
                     
                     if (!colunas || colunas.length < 2) continue;
 
                     const dataPlanilha = colunas[0].replace(/"/g, '').trim();
 
                     if (dataPlanilha === hoje) {
-                        // Trata a mensagem para manter as aspas desejadas
+                        // Trata a mensagem para MANTER as suas aspas internas
                         let msgRaw = colunas[1].trim();
-                        // Remove as aspas externas do CSV
+                        
+                        // Remove apenas as aspas externas que o Google Sheets coloca para proteção
                         if (msgRaw.startsWith('"') && msgRaw.endsWith('"')) {
                             msgRaw = msgRaw.substring(1, msgRaw.length - 1);
                         }
-                        // O Google Sheets duplica aspas internas (""), voltamos para uma só (")
+                        
+                        // O Google Sheets duplica aspas internas (""), aqui voltamos para uma só (")
                         const mensagemFinal = msgRaw.replace(/""/g, '"');
 
+                        // O Autor é a terceira coluna (índice 2)
                         const autor = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "Mensagem do Dia";
 
                         atualizarTela(autor, mensagemFinal);
@@ -140,7 +145,7 @@
                 }
 
             } catch (error) {
-                console.error(error);
+                console.error("Erro:", error);
                 document.getElementById('titulo-msg').innerText = "Ops!";
                 document.getElementById('texto-msg').innerText = "Erro ao carregar dados.";
             }
@@ -152,6 +157,7 @@
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
 
+        // Verifica a cada 5 minutos
         setInterval(carregarMensagem, 300000);
         carregarMensagem();
     </script>
