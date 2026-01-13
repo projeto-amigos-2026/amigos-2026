@@ -51,7 +51,8 @@
             display: flex; 
             flex-direction: column; 
             justify-content: center;
-            text-align: justify; /* Justifica o texto da mensagem */
+            /* 1. TEXTO JUSTIFICADO */
+            text-align: justify; 
         }
 
         #texto-msg { 
@@ -67,7 +68,8 @@
             font-size: 1.1rem; 
             display: block; 
             font-weight: bold; 
-            text-align: right; /* Alinha o autor à direita embaixo */
+            /* 2. AUTOR ALINHADO À DIREITA EMBAIXO */
+            text-align: right; 
             font-style: italic;
         }
 
@@ -99,6 +101,7 @@
 
         async function carregarMensagem() {
             try {
+                // Adicionamos um parâmetro de tempo para forçar o Google a enviar dados novos
                 const response = await fetch(URL_CSV + "&t=" + new Date().getTime());
                 const data = await response.text();
                 const linhas = data.split(/\r?\n/);
@@ -109,7 +112,7 @@
                 for (let i = 1; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
 
-                    // Regex para capturar colunas respeitando aspas e vírgulas internas
+                    // 4. REGEX MELHORADA: Garante que "Irmão Alymaoh" não seja cortado
                     const colunas = linhas[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
                     
                     if (!colunas || colunas.length < 2) continue;
@@ -138,10 +141,9 @@
         }
 
         function atualizarTela(autor, texto) {
-            // Define o autor como texto simples
             document.getElementById('titulo-msg').innerText = autor;
             
-            // DEFINE A MENSAGEM COMO HTML PARA O NEGRITO FUNCIONAR
+            // 5. O SEGREDO DO NEGRITO: .innerHTML em vez de .innerText
             document.getElementById('texto-msg').innerHTML = texto; 
             
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
