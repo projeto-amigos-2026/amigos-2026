@@ -51,7 +51,7 @@
             display: flex; 
             flex-direction: column; 
             justify-content: center;
-            text-align: justify; /* Justifica o texto */
+            text-align: justify; /* Justifica o texto da mensagem */
         }
 
         #texto-msg { 
@@ -67,7 +67,7 @@
             font-size: 1.1rem; 
             display: block; 
             font-weight: bold; 
-            text-align: right; /* Autor alinhado à direita */
+            text-align: right; /* Alinha o autor à direita embaixo */
             font-style: italic;
         }
 
@@ -106,12 +106,10 @@
                 const hoje = new Date().toLocaleDateString('pt-BR');
                 document.getElementById('data-display').innerText = "Hoje: " + hoje;
 
-                let encontrou = false;
-
                 for (let i = 1; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
 
-                    // Regex corrigida para não cortar nomes com espaços (como Irmão Alymaoh)
+                    // Regex para capturar colunas respeitando aspas e espaços
                     const colunas = linhas[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
                     
                     if (!colunas || colunas.length < 2) continue;
@@ -127,15 +125,12 @@
                         const autor = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "";
 
                         atualizarTela(autor, mensagemFinal);
-                        encontrou = true;
-                        break;
+                        return;
                     }
                 }
 
-                if (!encontrou) {
-                    document.getElementById('texto-msg').innerText = "Aguarde a próxima mensagem agendada.";
-                    document.getElementById('titulo-msg').innerText = "Paz e Bem!";
-                }
+                document.getElementById('texto-msg').innerText = "Aguarde a próxima mensagem agendada.";
+                document.getElementById('titulo-msg').innerText = "Paz e Bem!";
 
             } catch (error) {
                 document.getElementById('texto-msg').innerText = "Erro ao carregar dados.";
@@ -143,9 +138,9 @@
         }
 
         function atualizarTela(autor, texto) {
-            // Alterado para .innerHTML para que o navegador entenda as tags <b>
             document.getElementById('titulo-msg').innerText = autor;
-            document.getElementById('texto-msg').innerHTML = texto;
+            // O segredo para o negrito funcionar está no .innerHTML abaixo
+            document.getElementById('texto-msg').innerHTML = texto; 
             
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
