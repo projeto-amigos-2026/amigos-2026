@@ -51,8 +51,7 @@
             display: flex; 
             flex-direction: column; 
             justify-content: center;
-            /* Justifica o texto da mensagem */
-            text-align: justify; 
+            text-align: justify; /* Justifica o texto da mensagem */
         }
 
         #texto-msg { 
@@ -68,8 +67,7 @@
             font-size: 1.1rem; 
             display: block; 
             font-weight: bold; 
-            /* Alinha o autor à direita embaixo da mensagem */
-            text-align: right; 
+            text-align: right; /* Alinha o autor à direita embaixo */
             font-style: italic;
         }
 
@@ -101,7 +99,6 @@
 
         async function carregarMensagem() {
             try {
-                // Adicionamos um marcador de tempo para evitar cache do Google Sheets
                 const response = await fetch(URL_CSV + "&t=" + new Date().getTime());
                 const data = await response.text();
                 const linhas = data.split(/\r?\n/);
@@ -121,14 +118,10 @@
 
                     if (dataPlanilha === hoje) {
                         let msgRaw = colunas[1].trim();
-                        // Remove aspas externas da exportação do CSV
                         if (msgRaw.startsWith('"') && msgRaw.endsWith('"')) {
                             msgRaw = msgRaw.substring(1, msgRaw.length - 1);
                         }
-                        // Trata aspas duplas internas
                         const mensagemFinal = msgRaw.replace(/""/g, '"');
-                        
-                        // Captura o autor completo (coluna 3)
                         const autor = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "";
 
                         atualizarTela(autor, mensagemFinal);
@@ -140,14 +133,15 @@
                 document.getElementById('titulo-msg').innerText = "Paz e Bem!";
 
             } catch (error) {
-                document.getElementById('texto-msg').innerText = "Erro ao carregar dados. Verifique a conexão.";
+                document.getElementById('texto-msg').innerText = "Erro ao carregar dados.";
             }
         }
 
         function atualizarTela(autor, texto) {
+            // Define o autor como texto simples
             document.getElementById('titulo-msg').innerText = autor;
             
-            // AQUI ESTÁ A CORREÇÃO: .innerHTML permite que o <b> funcione
+            // DEFINE A MENSAGEM COMO HTML PARA O NEGRITO FUNCIONAR
             document.getElementById('texto-msg').innerHTML = texto; 
             
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
