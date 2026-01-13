@@ -51,7 +51,8 @@
             display: flex; 
             flex-direction: column; 
             justify-content: center;
-            text-align: justify; /* Justifica a mensagem */
+            /* Justifica o texto da mensagem */
+            text-align: justify; 
         }
 
         #texto-msg { 
@@ -67,7 +68,8 @@
             font-size: 1.1rem; 
             display: block; 
             font-weight: bold; 
-            text-align: right; /* Autor à direita embaixo */
+            /* Alinha o autor à direita embaixo da mensagem */
+            text-align: right; 
             font-style: italic;
         }
 
@@ -95,10 +97,11 @@
     </div>
 
     <script>
-        const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYdPGQ5c3sRdG9QahzO0zPYZjyzxsJ9z0mDFF3U7e9ZrZKSFGH7-ecqnf-awF1pffdOTnvcPhlmtk9/pub?output=csv";
+        const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYdPGQ5c3sRdG9QahzO0zPYZjyzxsJ9z0mDFN3U7e9ZrZKSFGH7-ecqnf-awF1pffdOTnvcPhlmtk9/pub?output=csv";
 
         async function carregarMensagem() {
             try {
+                // Adicionamos um marcador de tempo para evitar cache do Google Sheets
                 const response = await fetch(URL_CSV + "&t=" + new Date().getTime());
                 const data = await response.text();
                 const linhas = data.split(/\r?\n/);
@@ -109,7 +112,7 @@
                 for (let i = 1; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
 
-                    // Captura as colunas tratando aspas e vírgulas internas
+                    // Regex para capturar colunas respeitando aspas e vírgulas internas
                     const colunas = linhas[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
                     
                     if (!colunas || colunas.length < 2) continue;
@@ -118,10 +121,14 @@
 
                     if (dataPlanilha === hoje) {
                         let msgRaw = colunas[1].trim();
+                        // Remove aspas externas da exportação do CSV
                         if (msgRaw.startsWith('"') && msgRaw.endsWith('"')) {
                             msgRaw = msgRaw.substring(1, msgRaw.length - 1);
                         }
+                        // Trata aspas duplas internas
                         const mensagemFinal = msgRaw.replace(/""/g, '"');
+                        
+                        // Captura o autor completo (coluna 3)
                         const autor = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "";
 
                         atualizarTela(autor, mensagemFinal);
@@ -133,14 +140,14 @@
                 document.getElementById('titulo-msg').innerText = "Paz e Bem!";
 
             } catch (error) {
-                document.getElementById('texto-msg').innerText = "Erro ao carregar dados.";
+                document.getElementById('texto-msg').innerText = "Erro ao carregar dados. Verifique a conexão.";
             }
         }
 
         function atualizarTela(autor, texto) {
             document.getElementById('titulo-msg').innerText = autor;
             
-            // USAR .innerHTML PARA O NEGRITO FUNCIONAR
+            // AQUI ESTÁ A CORREÇÃO: .innerHTML permite que o <b> funcione
             document.getElementById('texto-msg').innerHTML = texto; 
             
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
