@@ -51,8 +51,7 @@
             display: flex; 
             flex-direction: column; 
             justify-content: center;
-            /* Alterado para justificar o texto */
-            text-align: justify; 
+            text-align: justify; /* Justifica o texto */
         }
 
         #texto-msg { 
@@ -60,7 +59,7 @@
             color: var(--text-dark); 
             line-height: 1.6; 
             margin: 0;
-            margin-bottom: 20px; /* Espaço para o autor */
+            margin-bottom: 20px; 
         }
 
         #titulo-msg { 
@@ -68,8 +67,7 @@
             font-size: 1.1rem; 
             display: block; 
             font-weight: bold; 
-            /* Alinha o autor à direita embaixo da mensagem */
-            text-align: right; 
+            text-align: right; /* Autor alinhado à direita */
             font-style: italic;
         }
 
@@ -113,8 +111,7 @@
                 for (let i = 1; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
 
-                    // REGEX MELHORADA: Captura o conteúdo entre aspas ou até a próxima vírgula
-                    // Isso evita que nomes compostos como "Irmão Alymaoh" sejam cortados
+                    // Regex corrigida para não cortar nomes com espaços (como Irmão Alymaoh)
                     const colunas = linhas[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
                     
                     if (!colunas || colunas.length < 2) continue;
@@ -127,8 +124,6 @@
                             msgRaw = msgRaw.substring(1, msgRaw.length - 1);
                         }
                         const mensagemFinal = msgRaw.replace(/""/g, '"');
-
-                        // Captura o autor completo removendo apenas as aspas externas
                         const autor = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "";
 
                         atualizarTela(autor, mensagemFinal);
@@ -148,8 +143,10 @@
         }
 
         function atualizarTela(autor, texto) {
+            // Alterado para .innerHTML para que o navegador entenda as tags <b>
             document.getElementById('titulo-msg').innerText = autor;
-            document.getElementById('texto-msg').innerText = texto;
+            document.getElementById('texto-msg').innerHTML = texto;
+            
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
 
