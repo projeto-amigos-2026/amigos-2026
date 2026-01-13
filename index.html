@@ -50,7 +50,7 @@
             min-height: 220px; 
             display: flex; 
             flex-direction: column; 
-            justify-content: center;
+            justify(content: center;
         }
 
         #titulo-msg { 
@@ -98,7 +98,7 @@
                 const response = await fetch(URL_CSV);
                 const data = await response.text();
                 
-                // Divide as linhas corretamente lidando com quebras de linha
+                // Divide as linhas tratando quebras de texto
                 const linhas = data.split(/\r?\n/);
                 
                 const hoje = new Date().toLocaleDateString('pt-BR');
@@ -107,7 +107,7 @@
                 let encontrou = false;
 
                 for (let i = 1; i < linhas.length; i++) {
-                    // Expressão regular para separar por vírgula, ignorando vírgulas dentro de aspas
+                    // REGEX: Divide por vírgula, mas respeita o conteúdo entre aspas
                     const colunas = linhas[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
                     
                     if (!colunas || colunas.length < 2) continue;
@@ -115,9 +115,15 @@
                     const dataPlanilha = colunas[0].replace(/"/g, '').trim();
 
                     if (dataPlanilha === hoje) {
-                        // Remove aspas do início e fim da mensagem e do autor
-                        const mensagem = colunas[1].replace(/^"|"$/g, '').trim();
-                        const autor = colunas[2] ? colunas[2].replace(/^"|"$/g, '').trim() : "Mensagem do Dia";
+                        // Trata a mensagem para MANTER as aspas internas
+                        let mensagem = colunas[1].trim();
+                        if (mensagem.startsWith('"') && mensagem.endsWith('"')) {
+                            mensagem = mensagem.substring(1, mensagem.length - 1);
+                        }
+                        // O CSV duplica aspas internas (""), aqui voltamos para uma só (")
+                        mensagem = mensagem.replace(/""/g, '"');
+
+                        const autor = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "Mensagem do Dia";
 
                         atualizarTela(autor, mensagem);
                         encontrou = true;
@@ -131,31 +137,18 @@
                 }
 
             } catch (error) {
-                console.error("Erro ao buscar dados:", error);
+                console.error(error);
                 document.getElementById('titulo-msg').innerText = "Ops!";
-                document.getElementById('texto-msg').innerText = "Certifique-se de estar conectado à internet.";
+                document.getElementById('texto-msg').innerText = "Erro ao carregar dados.";
             }
         }
 
         function atualizarTela(titulo, texto) {
-            const elTitulo = document.getElementById('titulo-msg');
-            const elTexto = document.getElementById('texto-msg');
-
-            // Feedback tátil se a mensagem for nova
-            if (elTexto.innerText !== texto && elTexto.innerText !== "Buscando a mensagem de hoje...") {
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-            }
-
-            elTitulo.innerText = titulo;
-            elTexto.innerText = texto;
+            document.getElementById('titulo-msg').innerText = titulo;
+            document.getElementById('texto-msg').innerText = texto;
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
 
-        // Solicitação de notificação
-        if (window.Notification && Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
-
-        // Verificação periódica (5 minutos)
         setInterval(carregarMensagem, 300000);
         carregarMensagem();
     </script>
