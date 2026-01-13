@@ -51,14 +51,8 @@
             display: flex; 
             flex-direction: column; 
             justify-content: center;
-        }
-
-        #titulo-msg { 
-            color: var(--primary); 
-            font-size: 1.3rem; 
-            margin-bottom: 15px; 
-            display: block; 
-            font-weight: bold; 
+            /* Alterado para justificar o texto */
+            text-align: justify; 
         }
 
         #texto-msg { 
@@ -66,6 +60,17 @@
             color: var(--text-dark); 
             line-height: 1.6; 
             margin: 0;
+            margin-bottom: 20px; /* Espaço para o autor */
+        }
+
+        #titulo-msg { 
+            color: var(--primary); 
+            font-size: 1.1rem; 
+            display: block; 
+            font-weight: bold; 
+            /* Alinha o autor à direita embaixo da mensagem */
+            text-align: right; 
+            font-style: italic;
         }
 
         .footer { 
@@ -74,6 +79,7 @@
             color: #757575; 
             border-top: 1px solid #e0e0e0; 
             background: #fafafa;
+            text-align: center;
         }
     </style>
 </head>
@@ -84,8 +90,8 @@
             <h1>Amigos da Vida</h1>
         </div>
         <div class="content">
-            <span id="titulo-msg">Carregando...</span>
             <p id="texto-msg">Buscando a mensagem de hoje...</p>
+            <span id="titulo-msg"></span>
         </div>
         <div class="footer" id="data-display">Verificando data...</div>
     </div>
@@ -95,11 +101,8 @@
 
         async function carregarMensagem() {
             try {
-                // Adicionamos um timestamp para forçar o download dos dados mais recentes da folha
                 const response = await fetch(URL_CSV + "&t=" + new Date().getTime());
                 const data = await response.text();
-                
-                // Divide as linhas corretamente
                 const linhas = data.split(/\r?\n/);
                 
                 const hoje = new Date().toLocaleDateString('pt-BR');
@@ -110,28 +113,23 @@
                 for (let i = 1; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
 
-                    // ESTA REGEX RESOLVE TUDO: Ela separa por vírgula, mas mantém o que está entre aspas unido
-                    const regexCSV = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
-                    const colunas = linhas[i].match(regexCSV);
+                    // REGEX MELHORADA: Captura o conteúdo entre aspas ou até a próxima vírgula
+                    // Isso evita que nomes compostos como "Irmão Alymaoh" sejam cortados
+                    const colunas = linhas[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
                     
                     if (!colunas || colunas.length < 2) continue;
 
                     const dataPlanilha = colunas[0].replace(/"/g, '').trim();
 
                     if (dataPlanilha === hoje) {
-                        // Trata a mensagem para MANTER as suas aspas internas
                         let msgRaw = colunas[1].trim();
-                        
-                        // Remove apenas as aspas externas que o Google Sheets coloca para proteção
                         if (msgRaw.startsWith('"') && msgRaw.endsWith('"')) {
                             msgRaw = msgRaw.substring(1, msgRaw.length - 1);
                         }
-                        
-                        // O Google Sheets duplica aspas internas (""), aqui voltamos para uma só (")
                         const mensagemFinal = msgRaw.replace(/""/g, '"');
 
-                        // O Autor é a terceira coluna (índice 2)
-                        const autor = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "Mensagem do Dia";
+                        // Captura o autor completo removendo apenas as aspas externas
+                        const autor = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "";
 
                         atualizarTela(autor, mensagemFinal);
                         encontrou = true;
@@ -140,24 +138,21 @@
                 }
 
                 if (!encontrou) {
-                    document.getElementById('titulo-msg').innerText = "Paz e Bem!";
                     document.getElementById('texto-msg').innerText = "Aguarde a próxima mensagem agendada.";
+                    document.getElementById('titulo-msg').innerText = "Paz e Bem!";
                 }
 
             } catch (error) {
-                console.error("Erro:", error);
-                document.getElementById('titulo-msg').innerText = "Ops!";
                 document.getElementById('texto-msg').innerText = "Erro ao carregar dados.";
             }
         }
 
-        function atualizarTela(titulo, texto) {
-            document.getElementById('titulo-msg').innerText = titulo;
+        function atualizarTela(autor, texto) {
+            document.getElementById('titulo-msg').innerText = autor;
             document.getElementById('texto-msg').innerText = texto;
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
 
-        // Verifica a cada 5 minutos
         setInterval(carregarMensagem, 300000);
         carregarMensagem();
     </script>
