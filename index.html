@@ -51,7 +51,7 @@
             display: flex; 
             flex-direction: column; 
             justify-content: center;
-            text-align: justify; /* Justifica o texto da mensagem */
+            text-align: justify; /* Justifica a mensagem */
         }
 
         #texto-msg { 
@@ -67,7 +67,7 @@
             font-size: 1.1rem; 
             display: block; 
             font-weight: bold; 
-            text-align: right; /* Alinha o autor à direita embaixo */
+            text-align: right; /* Autor à direita embaixo */
             font-style: italic;
         }
 
@@ -95,7 +95,7 @@
     </div>
 
     <script>
-        const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYdPGQ5c3sRdG9QahzO0zPYZjyzxsJ9z0mDFN3U7e9ZrZKSFGH7-ecqnf-awF1pffdOTnvcPhlmtk9/pub?output=csv";
+        const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYdPGQ5c3sRdG9QahzO0zPYZjyzxsJ9z0mDFF3U7e9ZrZKSFGH7-ecqnf-awF1pffdOTnvcPhlmtk9/pub?output=csv";
 
         async function carregarMensagem() {
             try {
@@ -109,7 +109,7 @@
                 for (let i = 1; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
 
-                    // Regex para capturar colunas respeitando aspas e espaços
+                    // Captura as colunas tratando aspas e vírgulas internas
                     const colunas = linhas[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
                     
                     if (!colunas || colunas.length < 2) continue;
@@ -139,7 +139,8 @@
 
         function atualizarTela(autor, texto) {
             document.getElementById('titulo-msg').innerText = autor;
-            // O segredo para o negrito funcionar está no .innerHTML abaixo
+            
+            // USAR .innerHTML PARA O NEGRITO FUNCIONAR
             document.getElementById('texto-msg').innerHTML = texto; 
             
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
