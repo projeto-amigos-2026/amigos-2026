@@ -32,10 +32,24 @@
             text-align: center;
         }
 
+        /* AJUSTE NO HEADER PARA A LOGO */
         .header { 
             background-color: var(--primary); 
             color: #ffffff; 
-            padding: 25px; 
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ESTILO DA LOGO */
+        .logo {
+            width: 80px; /* Ajuste o tamanho aqui */
+            height: auto;
+            border-radius: 50%; /* Se sua logo for redonda */
+            background: white; /* Adiciona um fundo branco se a logo for transparente */
+            padding: 5px;
         }
 
         .header h1 { 
@@ -51,7 +65,6 @@
             display: flex; 
             flex-direction: column; 
             justify-content: center;
-            /* 1. TEXTO JUSTIFICADO */
             text-align: justify; 
         }
 
@@ -68,7 +81,6 @@
             font-size: 1.1rem; 
             display: block; 
             font-weight: bold; 
-            /* 2. AUTOR ALINHADO À DIREITA EMBAIXO */
             text-align: right; 
             font-style: italic;
         }
@@ -87,6 +99,7 @@
 
     <div class="app-card">
         <div class="header">
+            <img src="logo.png" alt="Logo" class="logo">
             <h1>Amigos da Vida</h1>
         </div>
         <div class="content">
@@ -101,7 +114,6 @@
 
         async function carregarMensagem() {
             try {
-                // Adicionamos um parâmetro de tempo para forçar o Google a enviar dados novos
                 const response = await fetch(URL_CSV + "&t=" + new Date().getTime());
                 const data = await response.text();
                 const linhas = data.split(/\r?\n/);
@@ -112,9 +124,7 @@
                 for (let i = 1; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
 
-                    // 4. REGEX MELHORADA: Garante que "Irmão Alymaoh" não seja cortado
                     const colunas = linhas[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-                    
                     if (!colunas || colunas.length < 2) continue;
 
                     const dataPlanilha = colunas[0].replace(/"/g, '').trim();
@@ -131,10 +141,8 @@
                         return;
                     }
                 }
-
-                document.getElementById('texto-msg').innerText = "Aguarde a próxima mensagem agendada.";
+                document.getElementById('texto-msg').innerText = "Aguarde a próxima mensagem.";
                 document.getElementById('titulo-msg').innerText = "Paz e Bem!";
-
             } catch (error) {
                 document.getElementById('texto-msg').innerText = "Erro ao carregar dados.";
             }
@@ -142,10 +150,7 @@
 
         function atualizarTela(autor, texto) {
             document.getElementById('titulo-msg').innerText = autor;
-            
-            // 5. O SEGREDO DO NEGRITO: .innerHTML em vez de .innerText
             document.getElementById('texto-msg').innerHTML = texto; 
-            
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
 
