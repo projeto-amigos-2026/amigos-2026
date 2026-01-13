@@ -96,10 +96,10 @@
         async function carregarMensagem() {
             try {
                 const response = await fetch(URL_CSV);
-                const csvText = await response.text();
+                const data = await response.text();
                 
-                // Divide as linhas respeitando quebras de linha dentro de aspas
-                const linhas = csvText.split(/\r?\n/);
+                // Divide as linhas tratando quebras de texto
+                const linhas = data.split(/\r?\n/);
                 
                 const hoje = new Date().toLocaleDateString('pt-BR');
                 document.getElementById('data-display').innerText = "Hoje: " + hoje;
@@ -109,27 +109,23 @@
                 for (let i = 1; i < linhas.length; i++) {
                     if (!linhas[i].trim()) continue;
 
-                    // Esta Regex separa por vírgula mas ignora vírgulas dentro de aspas
-                    const regex = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
-                    const colunas = linhas[i].match(regex);
+                    // Esta lógica separa as colunas ignorando vírgulas dentro de aspas
+                    const colunas = linhas[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
                     
                     if (!colunas || colunas.length < 2) continue;
 
                     const dataPlanilha = colunas[0].replace(/"/g, '').trim();
 
                     if (dataPlanilha === hoje) {
-                        // Pega a mensagem e trata as aspas
-                        let mensagemOriginal = colunas[1].trim();
-                        
-                        // Remove as aspas externas do CSV mas mantém as internas
-                        if (mensagemOriginal.startsWith('"') && mensagemOriginal.endsWith('"')) {
-                            mensagemOriginal = mensagemOriginal.substring(1, mensagemOriginal.length - 1);
+                        // Trata a mensagem para manter as aspas desejadas
+                        let msgRaw = colunas[1].trim();
+                        // Remove as aspas externas do CSV
+                        if (msgRaw.startsWith('"') && msgRaw.endsWith('"')) {
+                            msgRaw = msgRaw.substring(1, msgRaw.length - 1);
                         }
-                        
-                        // Converte aspas duplas do CSV ("") de volta para aspas simples (")
-                        const mensagemFinal = mensagemOriginal.replace(/""/g, '"');
+                        // O Google Sheets duplica aspas internas (""), voltamos para uma só (")
+                        const mensagemFinal = msgRaw.replace(/""/g, '"');
 
-                        // Pega o autor na coluna 2
                         const autor = colunas[2] ? colunas[2].replace(/"/g, '').trim() : "Mensagem do Dia";
 
                         atualizarTela(autor, mensagemFinal);
